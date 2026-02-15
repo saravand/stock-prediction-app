@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Price Predictor - Enhanced</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+  <style>
+    :root {
+      --bg-dark: #0a0e1a;
+      --bg-card: #131825;
+      --bg-input: #1a1f33;
+      --accent-primary: #00d4aa;
+      --accent-secondary: #7b61ff;
+      --accent-warning: #ffa726;
+      --text-primary: #e8edf4;
+      --text-secondary: #8b95a8;
+      --border: rgba(255, 255, 255, 0.08);
+      --shadow: rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(123, 97, 255, 0.15) 0%, transparent 60%);
+      pointer-events: none;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(-30px, 40px) rotate(5deg); }
+      66% { transform: translate(30px, -30px) rotate(-5deg); }
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      animation: fadeInDown 0.8s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 3.5rem;
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+      letter-spacing: 0.02em;
+    }
+
+    .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      margin-left: 0.5rem;
+      text-transform: uppercase;
+    }
+
+    .search-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 20px 60px var(--shadow);
+      animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    input, select {
+      flex: 1;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      color: var(--text-primary);
+      font-family: 'Manrope', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"] {
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
+      background: var(--bg-card);
+    }
+
+    input::placeholder {
+      color: var(--text-secondary);
+      text-transform: none;
+      letter-spacing: normal;
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    select option {
+      background: var(--bg-input);
+      color: var(--text-primary);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+    }
+
+    button {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      border: none;
+      border-radius: 12px;
+      padding: 1rem 2.5rem;
+      color: white;
+      font-family: 'Manrope', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      letter-spacing: 0.02em;
+      position: relative;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 212, 170, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    button.secondary {
+      background: var(--bg-input);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    button.secondary:hover {
+      background: var(--bg-card);
+      box-shadow: 0 10px 30px rgba(255, 255, 255, 0.05);
+    }
+
+    .info-text {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      text-align: center;
+      font-weight: 400;
+      margin-top: 1rem;
+    }
+
+    .info-text a {
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .settings-toggle {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .settings-row {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .setting-item {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .setting-label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
+      cursor: pointer;
+      accent-color: var(--accent-primary);
+    }
+
+    .checkbox-label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      animation: fadeInUp 0.8s ease-out 0.4s both;
+    }
+
+    .prediction-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .prediction-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.5s ease;
+    }
+
+    .prediction-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .prediction-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px var(--shadow);
+      border-color: rgba(0, 212, 170, 0.3);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .period {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .change-badge {
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .change-badge.positive {
+      background: rgba(0, 212, 170, 0.15);
+      color: var(--accent-primary);
+    }
+
+    .change-badge.negative {
+      background: rgba(255, 82, 82, 0.15);
+      color: #ff5252;
+    }
+
+    .change-badge.neutral {
+      background: rgba(255, 167, 38, 0.15);
+      color: var(--accent-warning);
+    }
+
+    .price {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.5rem;
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .price-range {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+
+    .confidence-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--bg-input);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 3px;
+      transition: width 1s ease-out;
+    }
+
+    .price-details {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .detail-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+    }
+
+    .detail-value {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .model-badges {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .model-badge {
+      padding: 0.3rem 0.6rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .chart-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 20px 60px var(--shadow);
+      animation: fadeInUp 0.8s ease-out 0.6s both;
+    }
+
+    .chart-header {
+      margin-bottom: 2rem;
+    }
+
+    .chart-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem;
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.01em;
+    }
+
+    .chart-subtitle {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      font-weight: 400;
+    }
+
+    .metadata {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: var(--bg-input);
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    .metadata-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .metadata-label {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 500;
+    }
+
+    .metadata-value {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    canvas {
+      max-height: 400px;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .spinner {
+      border: 3px solid var(--border);
+      border-top: 3px solid var(--accent-primary);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      text-align: left;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .loading-step {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.8rem;
+      background: var(--bg-input);
+      border-radius: 8px;
+      opacity: 0.3;
+      transition: all 0.3s ease;
+    }
+
+    .loading-step.active {
+      opacity: 1;
+      border-left: 3px solid var(--accent-primary);
+    }
+
+    .loading-step.complete {
+      opacity: 0.7;
+    }
+
+    .step-icon {
+      font-size: 1.2rem;
+    }
+
+    .error {
+      background: rgba(255, 82, 82, 0.1);
+      border: 1px solid rgba(255, 82, 82, 0.3);
+      border-radius: 12px;
+      padding: 1.5rem;
+      color: #ff5252;
+      text-align: center;
+      margin-top: 1rem;
+      display: none;
+      font-weight: 500;
+    }
+
+    .error.active {
+      display: block;
+    }
+
+    .disclaimer {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-top: 2rem;
+      text-align: center;
+      animation: fadeInUp 0.8s ease-out 0.8s both;
+    }
+
+    .disclaimer-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+
+    .disclaimer-text {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      font-weight: 400;
+    }
+
+    #results {
+      display: none;
+    }
+
+    #results.active {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2.5rem;
+      }
+
+      .input-row {
+        grid-template-columns: 1fr;
+      }
+
+      .input-group, .button-group {
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metadata {
+        flex-direction: column;
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Stock Price Predictor<span class="badge">Enhanced</span></h1>
+      <p class="subtitle">Advanced AI-powered forecasting with ensemble predictions & confidence intervals</p>
+    </header>
+
+    <div class="search-section">
+      <div class="input-row">
+        <input 
+          type="text" 
+          id="apiKeyAlphaVantage" 
+          placeholder="Alpha Vantage API Key (required)" 
+          autocomplete="off"
+        >
+        <input 
+          type="text" 
+          id="tickerInput" 
+          placeholder="Stock Ticker (e.g., AAPL)" 
+          autocomplete="off"
+        >
+      </div>
+
+      <div class="settings-toggle">
+        <div class="settings-row">
+          <div class="setting-item">
+            <label class="setting-label">Prediction Method</label>
+            <select id="predictionMethod">
+              <option value="ensemble">Ensemble (3x Predictions)</option>
+              <option value="single">Single Prediction</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <label class="setting-label">Cache Duration</label>
+            <select id="cacheDuration">
+              <option value="3600000">1 Hour</option>
+              <option value="1800000">30 Minutes</option>
+              <option value="900000">15 Minutes</option>
+              <option value="0">No Cache (Always Fresh)</option>
+            </select>
+          </div>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="showConfidenceIntervals" checked>
+          <label class="checkbox-label" for="showConfidenceIntervals">Show confidence intervals</label>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button id="predictBtn" onclick="predictStock()">Generate Forecast</button>
+        <button class="secondary" id="refreshBtn" onclick="refreshPrediction()" style="display: none;">
+          🔄 Refresh Analysis
+        </button>
+      </div>
+
+      <p class="info-text">
+        Get your free API key at <a href="https://www.alphavantage.co/support/#api-key" target="_blank">alphavantage.co</a>
+        • Enhanced with ensemble predictions & confidence intervals
+      </p>
+      <div class="error" id="errorMsg"></div>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p style="font-weight: 600; margin-bottom: 1.5rem;">Analyzing market data...</p>
+      <div class="loading-steps">
+        <div class="loading-step" id="step1">
+          <span class="step-icon">📊</span>
+          <span>Fetching real-time stock price</span>
+        </div>
+        <div class="loading-step" id="step2">
+          <span class="step-icon">🔍</span>
+          <span>Searching market news & reports</span>
+        </div>
+        <div class="loading-step" id="step3">
+          <span class="step-icon">🤖</span>
+          <span>Generating ensemble predictions</span>
+        </div>
+        <div class="loading-step" id="step4">
+          <span class="step-icon">📈</span>
+          <span>Computing confidence intervals</span>
+        </div>
+        <div class="loading-step" id="step5">
+          <span class="step-icon">✨</span>
+          <span>Finalizing analysis</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="results">
+      <div class="metadata" id="metadata"></div>
+      <div class="results-grid" id="predictionCards"></div>
+
+      <div class="chart-section">
+        <div class="chart-header">
+          <h2 class="chart-title">Price Trajectory with Confidence Bands</h2>
+          <p class="chart-subtitle">Projected price movement with upper and lower bounds</p>
+        </div>
+        <canvas id="priceChart"></canvas>
+      </div>
+
+      <div class="disclaimer">
+        <div class="disclaimer-title">⚠️ Investment Disclaimer</div>
+        <p class="disclaimer-text">
+          These predictions are AI-generated estimates using ensemble methods and should not be considered financial advice. 
+          Stock prices are influenced by countless factors and actual results may differ significantly. 
+          Always conduct your own research and consult with a financial advisor before making investment decisions.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let chart = null;
+    let currentTicker = null;
+    let currentAnalysis = null;
+
+    // Cache management
+    const CACHE_PREFIX = 'stock_prediction_';
+
+    function getCachedPrediction(ticker) {
+      const cacheKey = CACHE_PREFIX + ticker;
+      const cached = localStorage.getItem(cacheKey);
+      
+      if (!cached) return null;
+      
+      try {
+        const data = JSON.parse(cached);
+        const cacheDuration = parseInt(document.getElementById('cacheDuration').value);
+        
+        if (cacheDuration === 0) return null; // No cache
+        
+        const age = Date.now() - data.timestamp;
+        if (age < cacheDuration) {
+          return data;
+        }
+      } catch (e) {
+        console.error('Cache read error:', e);
+      }
+      
+      return null;
+    }
+
+    function setCachedPrediction(ticker, data) {
+      const cacheKey = CACHE_PREFIX + ticker;
+      const cacheData = {
+        ...data,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+    }
+
+    function clearCache(ticker) {
+      const cacheKey = CACHE_PREFIX + ticker;
+      localStorage.removeItem(cacheKey);
+    }
+
+    // Loading step animation
+    function updateLoadingStep(stepNumber, status = 'active') {
+      const steps = document.querySelectorAll('.loading-step');
+      steps.forEach((step, index) => {
+        if (index + 1 < stepNumber) {
+          step.classList.remove('active');
+          step.classList.add('complete');
+        } else if (index + 1 === stepNumber) {
+          step.classList.add('active');
+          step.classList.remove('complete');
+        } else {
+          step.classList.remove('active', 'complete');
+        }
+      });
+    }
+
+    // Get real-time stock price from Alpha Vantage
+    async function getCurrentPrice(ticker, apiKey) {
+      updateLoadingStep(1);
+      try {
+        // Use CORS proxy to avoid CORS issues when running locally
+        const apiUrl = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${ticker}&apikey=${apiKey}`;
+        
+        // Try direct fetch first
+        let response;
+        let data;
+        
+        try {
+          response = await fetch(apiUrl);
+          data = await response.json();
+        } catch (corsError) {
+          console.log('Direct fetch failed, trying with CORS proxy...');
+          // Fallback to CORS proxy if direct fetch fails
+          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
+          response = await fetch(proxyUrl);
+          data = await response.json();
+        }
+        
+        if (data['Global Quote'] && data['Global Quote']['05. price']) {
+          return parseFloat(data['Global Quote']['05. price']);
+        } else if (data['Note']) {
+          throw new Error('API call limit reached. Please wait a moment and try again.');
+        } else if (data['Error Message']) {
+          throw new Error('Invalid stock ticker. Please check and try again.');
+        } else {
+          throw new Error('Unable to fetch stock price. Please verify the ticker symbol.');
+        }
+      } catch (error) {
+        throw error;
+      }
+    }
+
+    // Generate single prediction with Claude API
+    async function generateSinglePrediction(ticker, currentPrice, attemptNumber = 1) {
+      try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1500,
+            temperature: 0.3, // Low temperature for more consistency
+            tools: [{
+              type: "web_search_20250305",
+              name: "web_search"
+            }],
+            messages: [{
+              role: 'user',
+              content: `You are a financial analyst. Analyze ${ticker} stock and provide price predictions for 3 months, 6 months, 9 months, and 1 year.
+
+Current price: $${currentPrice.toFixed(2)}
+
+CRITICAL: Use the web_search tool to research:
+1. Recent news about ${ticker}
+2. Latest earnings reports
+3. Recent company announcements
+4. Analyst ratings and price targets
+5. Industry trends
+
+After gathering information, provide realistic predictions accounting for recent events, earnings, market sentiment, and fundamentals.
+
+Respond ONLY with a JSON object (no markdown, no backticks):
+{
+  "3mo": {"price": number, "change": number, "confidence": "high|medium|low", "reasoning": "brief 1-sentence rationale"},
+  "6mo": {"price": number, "change": number, "confidence": "high|medium|low", "reasoning": "brief 1-sentence rationale"},
+  "9mo": {"price": number, "change": number, "confidence": "high|medium|low", "reasoning": "brief 1-sentence rationale"},
+  "1yr": {"price": number, "change": number, "confidence": "high|medium|low", "reasoning": "brief 1-sentence rationale"},
+  "marketContext": "2-3 sentence summary of key factors",
+  "attemptNumber": ${attemptNumber}
+}`
+            }]
+          })
+        });
+
+        const data = await response.json();
+        
+        let fullText = '';
+        if (data.content) {
+          for (const block of data.content) {
+            if (block.type === 'text') {
+              fullText += block.text;
+            }
+          }
+        }
+        
+        const jsonStr = fullText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        const predictions = JSON.parse(jsonStr);
+        
+        return predictions;
+      } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+      }
+    }
+
+    // Generate ensemble predictions (multiple attempts, averaged)
+    async function generateEnsemblePredictions(ticker, currentPrice) {
+      updateLoadingStep(3);
+      
+      const predictionMethod = document.getElementById('predictionMethod').value;
+      
+      if (predictionMethod === 'single') {
+        return await generateSinglePrediction(ticker, currentPrice);
+      }
+      
+      // Ensemble: Generate 3 predictions and average them
+      const predictions = [];
+      const errors = [];
+      
+      for (let i = 0; i < 3; i++) {
+        try {
+          const pred = await generateSinglePrediction(ticker, currentPrice, i + 1);
+          predictions.push(pred);
+        } catch (error) {
+          errors.push(error);
+          console.error(`Prediction attempt ${i + 1} failed:`, error);
+        }
+        
+        // Small delay between attempts
+        if (i < 2) await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      if (predictions.length === 0) {
+        throw new Error('All prediction attempts failed. Please try again.');
+      }
+      
+      // Average the predictions
+      return averagePredictions(predictions, currentPrice);
+    }
+
+    // Average multiple predictions and calculate confidence intervals
+    function averagePredictions(predictions, currentPrice) {
+      updateLoadingStep(4);
+      
+      const periods = ['3mo', '6mo', '9mo', '1yr'];
+      const averaged = {};
+      
+      periods.forEach(period => {
+        const prices = predictions.map(p => p[period].price);
+        const changes = predictions.map(p => p[period].change);
+        
+        // Calculate mean
+        const meanPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+        const meanChange = changes.reduce((a, b) => a + b, 0) / changes.length;
+        
+        // Calculate standard deviation
+        const variance = prices.reduce((sum, price) => sum + Math.pow(price - meanPrice, 2), 0) / prices.length;
+        const stdDev = Math.sqrt(variance);
+        
+        // 95% confidence interval (±1.96 * stdDev for normal distribution)
+        const confidenceMargin = 1.96 * stdDev;
+        
+        // Determine confidence level based on variance
+        let confidenceLevel;
+        const coefficientOfVariation = (stdDev / meanPrice) * 100;
+        if (coefficientOfVariation < 5) {
+          confidenceLevel = 'high';
+        } else if (coefficientOfVariation < 10) {
+          confidenceLevel = 'medium';
+        } else {
+          confidenceLevel = 'low';
+        }
+        
+        // Aggregate reasoning (use most common or first)
+        const reasonings = predictions.map(p => p[period].reasoning).filter(r => r);
+        const reasoning = reasonings[0] || 'Based on ensemble analysis';
+        
+        averaged[period] = {
+          price: parseFloat(meanPrice.toFixed(2)),
+          priceMin: parseFloat((meanPrice - confidenceMargin).toFixed(2)),
+          priceMax: parseFloat((meanPrice + confidenceMargin).toFixed(2)),
+          change: parseFloat(meanChange.toFixed(2)),
+          confidence: confidenceLevel,
+          confidenceScore: Math.round((1 - coefficientOfVariation / 20) * 100), // 0-100 scale
+          reasoning: reasoning,
+          stdDev: parseFloat(stdDev.toFixed(2)),
+          ensembleSize: predictions.length
+        };
+      });
+      
+      // Aggregate market context
+      const contexts = predictions.map(p => p.marketContext).filter(c => c);
+      averaged.marketContext = contexts[0] || 'Analysis based on current market conditions.';
+      averaged.ensembleSize = predictions.length;
+      
+      return averaged;
+    }
+
+    // Fallback predictions with confidence intervals
+    function generateFallbackPredictions(currentPrice) {
+      const volatility = 0.15 + Math.random() * 0.25;
+      const predictions = {};
+      const periods = ['3mo', '6mo', '9mo', '1yr'];
+      const months = [3, 6, 9, 12];
+      
+      periods.forEach((period, idx) => {
+        const drift = (Math.random() - 0.3) * 0.1 * months[idx];
+        const randomWalk = (Math.random() - 0.5) * volatility * Math.sqrt(months[idx] / 12);
+        const changePercent = (drift + randomWalk) * 100;
+        const predictedPrice = currentPrice * (1 + changePercent / 100);
+        
+        const margin = predictedPrice * 0.1; // 10% margin for fallback
+        
+        predictions[period] = {
+          price: parseFloat(predictedPrice.toFixed(2)),
+          priceMin: parseFloat((predictedPrice - margin).toFixed(2)),
+          priceMax: parseFloat((predictedPrice + margin).toFixed(2)),
+          change: parseFloat(changePercent.toFixed(2)),
+          confidence: 'low',
+          confidenceScore: 40,
+          reasoning: 'Prediction based on historical volatility patterns (offline mode)',
+          ensembleSize: 1
+        };
+      });
+      
+      predictions.marketContext = 'Unable to fetch real-time market data. Predictions are based on statistical models only.';
+      predictions.ensembleSize = 1;
+      
+      return predictions;
+    }
+
+    async function predictStock(forceRefresh = false) {
+      const ticker = document.getElementById('tickerInput').value.trim().toUpperCase();
+      const apiKey = document.getElementById('apiKeyAlphaVantage').value.trim();
+      const errorMsg = document.getElementById('errorMsg');
+      const loading = document.getElementById('loading');
+      const results = document.getElementById('results');
+      const predictBtn = document.getElementById('predictBtn');
+      const refreshBtn = document.getElementById('refreshBtn');
+
+      // Validation
+      if (!apiKey) {
+        showError('Please enter your Alpha Vantage API key');
+        return;
+      }
+
+      if (!ticker) {
+        showError('Please enter a stock ticker');
+        return;
+      }
+
+      if (!/^[A-Z]{1,5}$/.test(ticker)) {
+        showError('Please enter a valid stock ticker (1-5 letters)');
+        return;
+      }
+
+      // Check cache unless force refresh
+      if (!forceRefresh) {
+        const cached = getCachedPrediction(ticker);
+        if (cached) {
+          console.log('Using cached prediction');
+          displayResults(ticker, cached.currentPrice, cached.predictions, true);
+          results.classList.add('active');
+          refreshBtn.style.display = 'block';
+          return;
+        }
+      }
+
+      // Reset UI
+      errorMsg.classList.remove('active');
+      results.classList.remove('active');
+      loading.classList.add('active');
+      predictBtn.disabled = true;
+      refreshBtn.style.display = 'none';
+      
+      // Reset loading steps
+      document.querySelectorAll('.loading-step').forEach(step => {
+        step.classList.remove('active', 'complete');
+      });
+
+      try {
+        updateLoadingStep(2);
+        
+        // Get current price
+        console.log('Fetching stock price for:', ticker);
+        const currentPrice = await getCurrentPrice(ticker, apiKey);
+        console.log('Current price:', currentPrice);
+        
+        // Generate predictions
+        console.log('Generating predictions...');
+        const predictions = await generateEnsemblePredictions(ticker, currentPrice);
+        console.log('Predictions generated:', predictions);
+        
+        updateLoadingStep(5);
+        
+        // Cache the results
+        setCachedPrediction(ticker, {
+          currentPrice,
+          predictions
+        });
+        
+        // Store for refresh
+        currentTicker = ticker;
+        currentAnalysis = { currentPrice, predictions };
+
+        // Display results
+        displayResults(ticker, currentPrice, predictions, false);
+        
+        loading.classList.remove('active');
+        results.classList.add('active');
+        refreshBtn.style.display = 'block';
+      } catch (error) {
+        loading.classList.remove('active');
+        
+        // More specific error messages
+        let errorMessage = 'Failed to generate predictions. ';
+        
+        if (error.message.includes('fetch')) {
+          errorMessage += 'Network error - please check your internet connection or try using a local server (see console for details).';
+        } else if (error.message.includes('API')) {
+          errorMessage += error.message;
+        } else if (error.message.includes('CORS')) {
+          errorMessage += 'CORS error - please run this app from a local server (see browser console for details).';
+        } else {
+          errorMessage += error.message || 'Please try again.';
+        }
+        
+        showError(errorMessage);
+        console.error('Detailed error:', error);
+        console.error('Error stack:', error.stack);
+      } finally {
+        predictBtn.disabled = false;
+      }
+    }
+
+    async function refreshPrediction() {
+      if (!currentTicker) return;
+      
+      // Clear cache for this ticker
+      clearCache(currentTicker);
+      
+      // Re-run prediction with force refresh
+      await predictStock(true);
+    }
+
+    function displayResults(ticker, currentPrice, predictions, fromCache) {
+      const cardsContainer = document.getElementById('predictionCards');
+      const metadataContainer = document.getElementById('metadata');
+      cardsContainer.innerHTML = '';
+      
+      const showConfidence = document.getElementById('showConfidenceIntervals').checked;
+      const predictionMethod = document.getElementById('predictionMethod').value;
+      
+      // Display metadata
+      const cacheAge = fromCache ? getCacheAge(ticker) : 'Just now';
+      metadataContainer.innerHTML = `
+        <div class="metadata-item">
+          <span class="metadata-label">Ticker</span>
+          <span class="metadata-value">${ticker}</span>
+        </div>
+        <div class="metadata-item">
+          <span class="metadata-label">Method</span>
+          <span class="metadata-value">${predictionMethod === 'ensemble' ? `Ensemble (${predictions.ensembleSize || 3}x)` : 'Single Prediction'}</span>
+        </div>
+        <div class="metadata-item">
+          <span class="metadata-label">Last Updated</span>
+          <span class="metadata-value">${cacheAge}</span>
+        </div>
+        <div class="metadata-item">
+          <span class="metadata-label">Data Source</span>
+          <span class="metadata-value">Alpha Vantage + AI Analysis</span>
+        </div>
+      `;
+
+      // Add current price card
+      const currentCard = document.createElement('div');
+      currentCard.className = 'prediction-card';
+      currentCard.style.background = 'linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(123, 97, 255, 0.1))';
+      currentCard.innerHTML = `
+        <div class="card-header">
+          <span class="period">CURRENT PRICE</span>
+          <span class="change-badge positive" style="background: rgba(0, 212, 170, 0.2);">
+            ● LIVE
+          </span>
+        </div>
+        <div class="price">$${currentPrice.toFixed(2)}</div>
+        <div class="price-details">
+          <div class="detail-item">
+            <span class="detail-label">Ticker</span>
+            <span class="detail-value">${ticker}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Source</span>
+            <span class="detail-value">ALPHA VANTAGE</span>
+          </div>
+        </div>
+      `;
+      cardsContainer.appendChild(currentCard);
+
+      const periods = [
+        { key: '3mo', label: '3 Months' },
+        { key: '6mo', label: '6 Months' },
+        { key: '9mo', label: '9 Months' },
+        { key: '1yr', label: '1 Year' }
+      ];
+
+      periods.forEach(({ key, label }) => {
+        const pred = predictions[key];
+        const isPositive = pred.change > 2;
+        const isNegative = pred.change < -2;
+        const badgeClass = isPositive ? 'positive' : isNegative ? 'negative' : 'neutral';
+        
+        const card = document.createElement('div');
+        card.className = 'prediction-card';
+        
+        let confidenceBarHTML = '';
+        if (pred.confidenceScore !== undefined) {
+          confidenceBarHTML = `
+            <div class="confidence-bar">
+              <div class="confidence-fill" style="width: ${pred.confidenceScore}%"></div>
+            </div>
+          `;
+        }
+        
+        let rangeHTML = '';
+        if (showConfidence && pred.priceMin && pred.priceMax) {
+          rangeHTML = `<div class="price-range">Range: $${pred.priceMin.toFixed(2)} - $${pred.priceMax.toFixed(2)}</div>`;
+        }
+        
+        card.innerHTML = `
+          <div class="card-header">
+            <span class="period">${label}</span>
+            <span class="change-badge ${badgeClass}">
+              ${isPositive ? '↑' : isNegative ? '↓' : '→'} ${Math.abs(pred.change).toFixed(2)}%
+            </span>
+          </div>
+          <div class="price">$${pred.price.toFixed(2)}</div>
+          ${rangeHTML}
+          ${confidenceBarHTML}
+          <div class="price-details">
+            <div class="detail-item">
+              <span class="detail-label">From Current</span>
+              <span class="detail-value">${pred.change >= 0 ? '+' : ''}$${(pred.price - currentPrice).toFixed(2)}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Confidence</span>
+              <span class="detail-value">${pred.confidence.toUpperCase()} ${pred.confidenceScore ? `(${pred.confidenceScore}%)` : ''}</span>
+            </div>
+          </div>
+          ${pred.reasoning ? `<div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">${pred.reasoning}</div>` : ''}
+        `;
+        cardsContainer.appendChild(card);
+      });
+
+      // Add market context
+      if (predictions.marketContext) {
+        const contextCard = document.createElement('div');
+        contextCard.style.gridColumn = '1 / -1';
+        contextCard.style.background = 'var(--bg-card)';
+        contextCard.style.border = '1px solid var(--border)';
+        contextCard.style.borderRadius = '16px';
+        contextCard.style.padding = '2rem';
+        contextCard.style.marginTop = '1rem';
+        contextCard.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+            <span style="font-size: 1.5rem;">📊</span>
+            <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-weight: 400;">Market Context & Analysis</h3>
+          </div>
+          <p style="color: var(--text-secondary); line-height: 1.7; font-size: 0.95rem;">${predictions.marketContext}</p>
+          <div class="model-badges">
+            ${predictionMethod === 'ensemble' ? `<span class="model-badge">Ensemble Method (${predictions.ensembleSize}x)</span>` : ''}
+            <span class="model-badge">Temperature: 0.3</span>
+            <span class="model-badge">Real-time News</span>
+            <span class="model-badge">Confidence Intervals</span>
+          </div>
+          <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-secondary); font-style: italic;">
+            Analysis conducted on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}
+          </div>
+        `;
+        cardsContainer.appendChild(contextCard);
+      }
+
+      // Create chart with confidence bands
+      createChart(ticker, currentPrice, predictions, showConfidence);
+    }
+
+    function getCacheAge(ticker) {
+      const cached = localStorage.getItem(CACHE_PREFIX + ticker);
+      if (!cached) return 'Unknown';
+      
+      try {
+        const data = JSON.parse(cached);
+        const ageMs = Date.now() - data.timestamp;
+        const ageMinutes = Math.floor(ageMs / 60000);
+        
+        if (ageMinutes < 1) return 'Just now';
+        if (ageMinutes < 60) return `${ageMinutes} minute${ageMinutes > 1 ? 's' : ''} ago`;
+        
+        const ageHours = Math.floor(ageMinutes / 60);
+        return `${ageHours} hour${ageHours > 1 ? 's' : ''} ago`;
+      } catch (e) {
+        return 'Unknown';
+      }
+    }
+
+    function createChart(ticker, currentPrice, predictions, showConfidence) {
+      const ctx = document.getElementById('priceChart').getContext('2d');
+      
+      if (chart) {
+        chart.destroy();
+      }
+
+      const labels = ['Current', '3 Months', '6 Months', '9 Months', '1 Year'];
+      const dataPoints = [
+        currentPrice,
+        predictions['3mo'].price,
+        predictions['6mo'].price,
+        predictions['9mo'].price,
+        predictions['1yr'].price
+      ];
+
+      const datasets = [];
+
+      // Main prediction line
+      const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+      gradient.addColorStop(0, 'rgba(0, 212, 170, 0.3)');
+      gradient.addColorStop(1, 'rgba(0, 212, 170, 0)');
+
+      datasets.push({
+        label: `${ticker} Price Forecast`,
+        data: dataPoints,
+        borderColor: '#00d4aa',
+        backgroundColor: gradient,
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 6,
+        pointBackgroundColor: '#00d4aa',
+        pointBorderColor: '#0a0e1a',
+        pointBorderWidth: 2,
+        pointHoverRadius: 8
+      });
+
+      // Add confidence bands if available
+      if (showConfidence && predictions['3mo'].priceMin) {
+        const upperBound = [
+          currentPrice,
+          predictions['3mo'].priceMax,
+          predictions['6mo'].priceMax,
+          predictions['9mo'].priceMax,
+          predictions['1yr'].priceMax
+        ];
+
+        const lowerBound = [
+          currentPrice,
+          predictions['3mo'].priceMin,
+          predictions['6mo'].priceMin,
+          predictions['9mo'].priceMin,
+          predictions['1yr'].priceMin
+        ];
+
+        datasets.push({
+          label: 'Upper Confidence Bound',
+          data: upperBound,
+          borderColor: 'rgba(0, 212, 170, 0.3)',
+          borderWidth: 2,
+          borderDash: [5, 5],
+          fill: false,
+          tension: 0.4,
+          pointRadius: 0
+        });
+
+        datasets.push({
+          label: 'Lower Confidence Bound',
+          data: lowerBound,
+          borderColor: 'rgba(0, 212, 170, 0.3)',
+          borderWidth: 2,
+          borderDash: [5, 5],
+          fill: false,
+          tension: 0.4,
+          pointRadius: 0
+        });
+      }
+
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: showConfidence,
+              labels: {
+                color: '#8b95a8',
+                font: {
+                  family: 'Manrope',
+                  size: 11
+                }
+              }
+            },
+            tooltip: {
+              backgroundColor: '#131825',
+              titleColor: '#e8edf4',
+              bodyColor: '#8b95a8',
+              borderColor: 'rgba(255, 255, 255, 0.08)',
+              borderWidth: 1,
+              padding: 12,
+              displayColors: true,
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              grid: {
+                color: 'rgba(255, 255, 255, 0.05)',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#8b95a8',
+                callback: function(value) {
+                  return '$' + value.toFixed(0);
+                }
+              }
+            },
+            x: {
+              grid: {
+                display: false,
+                drawBorder: false
+              },
+              ticks: {
+                color: '#8b95a8'
+              }
+            }
+          },
+          interaction: {
+            intersect: false,
+            mode: 'index'
+          }
+        }
+      });
+    }
+
+    function showError(message) {
+      const errorMsg = document.getElementById('errorMsg');
+      errorMsg.textContent = message;
+      errorMsg.classList.add('active');
+      setTimeout(() => {
+        errorMsg.classList.remove('active');
+      }, 5000);
+    }
+
+    // Allow Enter key to submit
+    document.getElementById('tickerInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        predictStock();
+      }
+    });
+    
+    document.getElementById('apiKeyAlphaVantage').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        predictStock();
+      }
+    });
+  </script>
+</body>
+</html>
